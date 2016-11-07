@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Dancing Sudoku - The Sudoku solver using Dancing Links written by JS</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+		<script type="text/javascript" src="dlx.js"></script>
+		<script type="text/javascript" src="sui.js"></script>
+		<style type="text/css">
+			#tablewrapper{
+				text-align : center;
+				width : 100%;
+			}
+			#table{
+				margin : 0px auto;
+				width : 21em;
+			}
+			#msg{
+				margin : 0px auto;
+				width : 40em;
+			}
+			.padding{
+				height : 1em;
+			}
+			h1{
+				background-color : #dddddd;
+				color : #777777;
+			}
+			h2{
+				background-color : #dddddd;
+				color : #777777;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Dancing Sudoku - The Sudoku solver using Dancing Links algorithm</h1>
+		
+		<div id="tablewrapper">
+			<div id="msg"></div>
+			<div class="padding"></div>
+			<div id="table"></div>
+			<div class="padding"></div>
+			<button onclick="SudokuUI.solveAndWrite();">solve</button>
+			<button onclick="SudokuUI.clear();">clear</button>
+		</div>
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div>
+		<h2>What's this?</h2>
+			<p>
+				 Just a simple Sudoku solver. If you want to cheating Sudoku puzzle, use this.<br>
+				 
+			</p>
+		<h2>How to use</h2>
+			<p>
+				<ol>
+					<li> You wish you could solve the Sudoku with no effort.<br>
+					<li> Click the cell.<br>
+					<li> Then, show up the text input form.<br>
+					<li> Fill it by number from 1 to 9.<br>
+					<li> Click the button "solve"<br><br>
+				</ol>
+				<br>
+				*Note : If there are multiple candidate of solution, the solver shows the one which is first found solution by internal algorithm.
+				
+			</p>
+
+		<h2>Description</h2>
+			<p>
+				 Sudoku[1], one of the most popular puzzle is the important material for study of the algorithms.<br>
+				Solving the Sudoku is known as the problem categorized as NP-complete, so we have to use a brute-force storategy to solve it.<br>
+			</p>
+			<p>
+				 The Dancing Links algorithm[2] is introduced by Prof. Knuth as effecient backtracking algorithm.<br>
+				This algorithm is easy to construct the backtraking solver for Exact Cover problem like Sudoku, 8 queens problem.[3]
+			</p>
+			<p>
+				 This application is simple Sudoku Solver, using Dancing Links algorithm, and written by JavaScript.<br>
+				This is not serverside application but just a client application. That is, all computation runs user's js interpreter ( or compiler ).</br>
+			</p>
+			<p>
+				Motivation of using JavaScript is JavaScript engine of the recent webbrowsers is surprisingly quick.<br>
+				So author thought that relatively heavy computation like this Sudoku solver will easy to run. And it proved.<br>
+			</p>
+			<br><br>
+			<p>
+				[1] Wikipedia.org - Sudoku <a href="http://en.wikipedia.org/wiki/Sudoku">http://en.wikipedia.org/wiki/Sudoku</a><br>
+				[2] Donald E. Knuth - Dancing Links <a href="http://arxiv.org/PS_cache/cs/pdf/0011/0011047v1.pdf">http://arxiv.org/PS_cache/cs/pdf/0011/0011047v1.pdf</a><br>
+				[3] Wikipedia.org - Exact Cover <a href="http://en.wikipedia.org/wiki/Exact_cover">http://en.wikipedia.org/wiki/Exact_cover</a><br>
+
+			</p>
+		<h2>Contribute</h2>
+			<p>
+				Thanks to hirofummy. He advised author about technique used in the user interface.
+			</p>
+		<h2>Contact</h2>
+			<p>
+				kogecoo'AT'gmail_com
+			</p>
+		<h2>History</h2>
+			<p>
+				ver. 1 Initial release.
+		
+		<script type="text/javascript">
+			SudokuUI.showMsg( SudokuUI.default_msg, SudokuUI.default_msgbg );
+			$( "#table" ).append( SudokuUI.createSudokuTable( 9, 9 ) );
+		</script>
+		
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>

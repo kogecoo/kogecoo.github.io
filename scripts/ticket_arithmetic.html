@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Ticket Arithmetic Master( The Countdown numbers game Solver )</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<style type="text/css">
+			.input_number{
+				width: 5em;
+				margin: 1em 1em 1em 0;
+			}
+			#result{
+				width: 20em;
+				height: 10em;
+				margin: 0 1em 1em 1em;
+			}
+		</style>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			var ndigits = 4;
+			var target = 10;
+			var operator = [ '+', '-', '*', '/' ];
+
+			function solve( digits, operator ){
+				if( digits > 1 ){
+					
+				} else {
+					return digits;
+				}
+			}
+			function createBinaryTree( list ){
+				if( list.length >= 2 ){
+					var ret = [];
+					for( var i = 1;  i < list.length; ++i ){
+						ret.push( [ createBinaryTree( list.slice( 0, i ) ), createBinaryTree( list.slice( i, list.length ) ) ] );
+					}
+					return ret;
+				} else if( list.length == 1 ){
+					return list;
+				}
+			}
+
+			function generateExpressions( tree ){
+				if( tree !== undefined && tree.length == 1 && !( tree[0] instanceof Array ) ){
+					return tree;
+				} else {
+					var ret = [];
+					for( var i = 0; i < tree.length; ++i ){
+						var left = generateExpressions( tree[i][0] );
+						var right = generateExpressions( tree[i][1] );
+						for( var j = 0; j < left.length; ++j ){
+							for( var k = 0; k < right.length; ++k ){
+								for( var l = 0; l < operator.length; ++l ){
+									//ret.push( "(" + left[j] + operator[l] + right[k] +")" );
+									ret.push( [ left[j], operator[l], right[k] ] );
+								}
+							}
+						}
+					}
+					return ret;
+				}
+			}
+			function gcd( a, b ){
+				if( a >= b ){
+					var temp = a;
+					a = b;
+					b = temp;
+				}
+				while( b != 0 ){
+					var c = a % b;
+					a = b;
+					b = c;
+				}
+				return a;
+			}
+			function Frac( num, den ){ 
+				this.num = num;
+				this.den = den;
+				this.reduction = function(){ var g = gcd( this.num, this.den ); if( g > 0 ){ this.num /= g; this.den /= g; }};
+				this.isInt = function(){ return ( this.den === 1 ); }
+				this.deFraction = function(){ this.reduction(); return this.num / this.den; }
+			}
+			function evalFrac( l, r, operator ){
+				switch( operator ){
+					case '+':
+						if( l.den == r.den ){
+							return new Frac( l.num + r.num, l.den );
+						} else {
+							return new Frac( l.num * r.den + r.num * l.den, l.den * r.den );
+						}
+					case '-':
+						if( l.den == r.den ){
+							return new Frac( l.num - r.num, l.den );
+						} else {
+							return new Frac( l.num * r.den - r.num * l.den, l.den * r.den );
+						}
+					case '*':
+						return new Frac( l.num * r.num, l.den * r.den );
+					case '/':
+						if( r.num == 0 ){
+							throw "Division by zero";
+						} else {
+							return new Frac( l.num * r.den, l.den * r.num );
+						}
+					default:
+						throw "error at evalFrac";
+				}
+			}
+			
+			function evaluate( expression ){
+				if( expression.length == 3 ){
+					var l = expression[0];
+					var o = expression[1];
+					var r = expression[2];
+					if( l instanceof Array ){ l = evaluate( l ); } else { l = new Frac( l, 1 ); }
+					if( r instanceof Array ){ r = evaluate( r ); } else { r = new Frac( r, 1 ); }
+					var e = evalFrac( l, r, o );
+					e.reduction();
+					return e;
+				} else {
+					throw "Data structure is broken";
+				}
+			}
+			function getIntSolutions( expressions ){
+				var solutions = [];
+				for( var i = 0; i < expressions.length; ++i ){
+					try{
+						var f = evaluate( expressions[i] );
+						if( f.isInt() ){
+							solutions.push( [expressions[i], f.deFraction()] );
+						} else {
+							continue;
+						}
+					} catch( e ){
+						continue;
+					}
+				}
+				return solutions;
+			}
+			function bintree2Str( tree ){
+				if( tree.length == 3 ){
+					var l = tree[0];
+					var o = tree[1];
+					var r = tree[2];
+					if( l instanceof Array ){ l = bintree2Str( l ); }
+					if( r instanceof Array ){ r = bintree2Str( r ); }
+					return "( " + l + " " + o + " "  + r + " )";
+				} else {
+					throw "Data structure is broken";
+					return "ERROR";
+				}
+			}
+			function solve( l ){
+				var s = createBinaryTree( l );
+				var expressions = generateExpressions( s );
+				return getIntSolutions( expressions, 10 );
+			}
+			function solveAndDraw(){
+				var r = $("#result");
+				var l = getNumbers();
+				var target = getTargetNumber();
+				if( l.length === 0 || target === undefined ){ return; }
+				var solutions = solve( l );
+				var text = "";
+				for( var j = 0; j < solutions.length; ++j ){
+					if( solutions[j][1] === target ){
+						text += bintree2Str( solutions[j][0] ) + " = " + solutions[j][1] + "\n";
+					}
+				}
+				if( text === "" ){ text = "No solution!"; }
+				r.val( text );
+			}
+			function checkNum( n ){
+				try{
+					if( n === undefined || n === null || n === "" ){
+						alert( "Please fill all forms." );
+						return false;
+					} else {
+						n = parseInt( n );
+						return true;
+					}
+				} catch( e ){
+					alert( "Invalid number" );
+					return false;
+				}
+			}
+			function getTargetNumber(){
+				var target = $("#target").val();
+				if( checkNum( target ) ){
+					return parseInt( target );
+				} else {
+					return undefined;
+				}
+			}
+			function getNumbers(){
+				var terms = $("#nterms").val();
+				var list = [];
+				for( var i = 0; i < terms; ++i ){
+				 	var n = $("#term"+i).val();
+					if( checkNum( n ) ){				
+						n = parseInt( n );
+					} else {
+						return [];
+					}
+					list.push( n );
+				}
+				return list;
+			}
+			function drawInterface(){
+				$(".input_number").remove();
+				var form = $("#form");
+				var terms = $("#nterms").val();
+				for( var i = 0; i < terms; ++i ){
+					var input = $("<input class='input_number' id='term" + i + "'>").val( i + 1 );
+					form.append( input );
+				}
+				form.append( $("<span id='eq' class='input_number'>").append(" = ") );
+				form.append( $("<input class='input_number' id='target'>" ).val(10) );
+			}
+		</script>
+	</head>
+	<body onload="drawInterface();solveAndDraw();">
+		<h1>Ticket Arithmetic Master ( Countdown numbers game solver )</h1>
+		The number of terms : 
+		<select id="nterms" onchange="drawInterface();">
+			<option>2</option>
+			<option>3</option>
+			<option selected>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+		</select>
+		
+		<div id="form"></div>
+		<button onclick="solveAndDraw();">get solutions</button><br><br>
+		Solutions<br>
+		<textarea id="result"></textarea>
+		<br>
+		<div class="padding"></div>
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div>
+		<h2>What's this?</h2>
+			<p>
+				This is a solver for popular game named the Countdown Numbers Game written by JavaScript.<br>
+				It generates valid equations within the constraints of given numbers.<br>
+				Many simple solvers disallow the appearance of fraction in the way of calculation, but this solver allows it.
+			</p>
+		<h2>How to use?</h2>
+			<ol>
+				<li> Select how many terms to use calculation.
+				<li> Input the numbers.<br>
+				<li> Push the button labeled "get solutions"
+				<li> You have the solutions in the textarea labeled "Solutions"
+			</ol>
+			For example, the problem such as "Make 10 from four numbers 1, 9, 1, 9",
+			<ol>
+				<li>Select 4, the number of terms.
+				<li>Input 1, 9, 1, 9 to text input forms at the below of selection form. 
+				<li>Input the target number "10" to the rightmost input form.
+				<li>push the button labeled "get solutions"
+			</ol>
+		<h2>Description</h2>
+			<p>
+				 The Countdown Numbers Game is generalized as follows.<br>
+				Given n numbers ( X1...Xn ) and and one target number T, make a valid equation with "+,-,*,-".<br>
+			</p>
+			<p>
+				 In Japan, a variation of the countdown numbers game is known as the ticket numbers game, or number plate ( license plate ) game.<br>
+				The ticket numbers game is the special case of above generalized countdown numbers game, which constraints are n=4, 0<=Xn<=9, and T=10. <br><br>
+				<img src="../img/jpnumberplate.png" style="float:left;"><div>A number plate in Japan. <br>( This is public domain image, from wikipedia. )</div><div style="clear:both;"></div><br>
+				 Following the Japanese rule, above number plate is converted to a problem "Given 4, 6, 4, 9 and make it 10 with +, -, *, /".<br>
+				 And the solution is ( 4 - 6 ) * ( 4 - 9 ) = -2 * ( - 5 ) = 10.
+			</p>
+		<h2>Contact</h2>
+		<p>
+			kogecoo'AT'gmail_com
+		</p>
+		
+		<h2>History</h2>
+			<p>
+				2011.04.30 ver. 1 Initial release.
+			</p>
+		
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>

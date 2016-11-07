@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Monte Carlo method based PI calculator</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<style>
+			.accept{
+				background-color: red;
+				width: 1px;
+				height: 1px;
+			}
+			.reject{
+				background-color: blue;
+				width: 1px;
+				height: 1px;
+			}
+			#space{
+				position: relative;
+				border: solid 1px black;
+				width: 100px;
+				height: 100px;
+			}
+		</style>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			var side = 100;
+			var magnify = side;
+			var accept = 0;
+			var nsamples = 0;
+			function generateRandVector( genRand, dimension ){
+				var vec = [];
+				for( var i = 0; i < dimension; ++i ){
+					vec.push( genRand() );
+				}
+				return vec;
+			}
+			
+			function plot( vec, accept ){
+				var point = $("<div>")
+				point.css( { position: "absolute", left: vec[0] + "px" , top: vec[1] + "px", float: "left"} );
+				if( accept ){
+					point.attr( 'class', 'accept' );
+				} else {
+					point.attr( 'class', 'reject' );
+				}
+				$("#space" ).append( point );
+			}
+			function acceptOrReject( vec, o, r ){
+				var rmin = o-r;
+				var rmax = o+r;
+				var distance = 0;
+				for( var i = 0; i < vec.length; ++i ){
+					distance += ( vec[i] - o ) * ( vec[i] - o )
+				}
+				if( Math.sqrt( distance ) > r ){
+					return false;
+				} else {
+					return true;
+				}
+			}
+			function magnifyLocation( vec, magnify){
+				for( var i = 0; i < vec.length; ++i ){
+					vec[i] = vec[i] * magnify;
+				}
+			}
+			function init(){
+				accept = 0;
+				nsamples = 0;
+				var samplingcount = 0;
+				try{
+					samplingcount = $("#samples").val();
+					if( samplingcount === undefined || samplingcount === null || samplingcount < 1 ){
+						throw "error";
+					}
+					samplingcount = parseInt( samplingcount );
+				} catch( e ){
+					alert( "please insert a valid number of sampling iteration" );
+					return 0;
+				}
+				$(".accept").remove();
+				$(".reject").remove();
+				return samplingcount;
+			}
+			function monteCarloSimulation(){
+				var samplingcount = init();
+				if( samplingcount === 0 ){
+					return;
+				} else {
+					var samples = generateSamples( samplingcount );
+					calcAndDrawPI();
+				}
+			}
+			function calcAndDrawPI(){
+				var ratio = accept / nsamples;
+				var pi = 4 * ratio;
+				$("#incirclesample").text( accept );
+				$("#allsample").text( nsamples );
+				$("#ratio").text( ratio );
+				$("#pi").text( pi );
+			}
+			function generateSamples( count ){
+				var samples = [];
+				for( var i = 0; i < count; ++i ){
+					samples.push( simulatePoint() );
+				}
+				return samples;
+			}
+			function simulatePoint(){
+				var point = generateRandVector( Math.random, 2 );
+				magnifyLocation( point, magnify );
+				var acc = acceptOrReject( point, side/2, side/2 );
+				if( acc )accept++;
+				nsamples++
+				plot( point, acc );
+				return point;
+			}
+			function moreSamples(){
+				var samplingcount = 0;
+				try{
+					samplingcount = $("#more").val();
+					if( samplingcount === undefined || samplingcount === null || samplingcount < 1 ){
+						throw "error";
+					}
+					samplingcount = parseInt( samplingcount );
+				} catch( e ){
+					alert( "please insert a valid number of sampling iteration" );
+					return 0;
+				}
+				for( var i = 0; i < samplingcount; ++i ){
+					moreSampleOne();
+				}
+				calcAndDrawPI();
+			}
+			function moreSampleOne(){
+				var sample = simulatePoint();
+				var acc = acceptOrReject( sample, side/2, side/2 );
+				plot( sample, acc );
+			}
+			function clearSamples(){
+				$(".accept").remove();
+				$(".reject").remove();
+				$("#incirclesample").text("");
+				$("#allsample").text("");
+				$("#ratio").text("");
+				$("#pi").text("");
+			}
+		</script>
+	</head>
+	<body>
+		<h1> Monte Carlo simulator by JavaScript</h1>
+		<div id="space"></div>
+		<table>
+			<tr>
+				<td>Samples in circle</td><td id="incirclesample"></td>
+			</tr><tr>
+				<td>All samples</td><td id="allsample"></td>
+			</tr><tr>
+				<td>Ratio</td><td id="ratio"></td>
+			</tr><tr>
+				<td>PI</td><td id="pi"></td>
+			</tr>
+		</table>
+		<div id="result"></div>
+		<input type="text" id="samples" value="1000"></input>
+		<button onclick="monteCarloSimulation();">generate samples</button><br>
+		<input type="text" id="more" value="100"></input><button onclick="moreSamples();">more samples</button><br>
+		<button onclick="clearSamples();">clear samples</button><br><br>
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div>
+		
+		<h2>What's this?</h2>
+			<p>
+				 The most famous Monte Carlo simulator which calculate PI.<br>
+				Many text use this well-known simulator as simple example of Monte Carlo method because of its simpleness.<br><br>
+				 This sampler calculates PI as following: <br>
+				First, samples are scattered in square box which side 2R, area 4R^2.<br>
+				Second, calculate the ratio of the number of samples in the circle to the number of all samples.<br>
+				( If a sample location is (x, y) and satisfy fx^2 + y^2 <= R, the sample is in the circle. )<br>
+				Third, we think that we have correct ratio, and solve ( 4R^2 ) / (piR^2 ) = ratio.<br><br>
+				There is no need more explanation. Enjoy it.<br><br>
+			</p>
+		<h2>Contact</h2>
+			<p>
+				kogecoo'AT'gmail_com
+			</p>
+		<h2>History</h2>
+			<p>
+				2011.04.29 ver. 1 Initial release.
+			</p>
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>

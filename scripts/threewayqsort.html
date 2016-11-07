@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Three-way Quick Sort</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+		<script type="text/javascript" src="twqsort.js"></script>
+		
+		<style type="text/css">
+			#canv{
+				height: 100px;
+			}
+			.bar{
+				background-color : #000000;
+				width : 2px;
+			}
+		</style>
+
+	</head>
+	<body>
+		<h1> Three way Quick Sort module for JavaScript</h1>
+		
+		<button onclick="generateAndDraw();">generate</button><button onclick="sortAndDraw();">sort</button>
+		<div class="padding"></div>
+		<div id="canv"></div>
+		<div class="padding"></div><div class="padding"></div><div class="padding"></div>
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div><br><br>
+		<h2>What's this?</h2>
+			<p>
+				Simple demo for the Three-Way Quick Sort by JavaScript<br>
+			</p>
+		<h2>Description</h2>
+			<p>
+				The 3-way quick sort is a variation of the quicksort.<br>
+				Standard quicksort we know well uses a single pivot, but the 3-way quick sort uses two.<br>
+			</p>
+		<h2>Module</h2>
+			<p>
+				  Three Way Quick Sort module for JavaScript is available.<br>
+			</p>
+				Download from here => <a href="twqsort.js">twqsort.js</a>
+		<h2>Contact</h2>
+		<p>
+			kogecoo'AT'gmail_com
+		</p>
+		
+		<h2>History</h2>
+			<p>
+				2011.04.18 ver. 1 Initial release.
+		<script>
+			var max_height = 100;
+			var gen_max = 100;
+			var arr = genIntRandArray( gen_max , max_height );
+			draw();
+			function draw(){
+				$( ".bar" ).remove()
+				for( var i = 0; i < arr.length; ++i ){
+					var h = max_height - arr[i];
+					var bar = $( "<div>" ).attr( "class", "bar" ).css( { "height" : arr[i] + "px", "float" : "left", marginLeft : "2px", marginTop : h + "px" } );	
+					
+					$( "#canv" ).append( bar );
+				}
+			}
+			
+			function genIntRandArray( length, max ){
+				var a = Array();
+				while( length-- ){
+					a.push( Math.floor( Math.random() * ( max + 1 ) ) );
+				}
+				return a;
+			}
+			function sortAndDraw(){
+				threeWayQSort( arr );
+				draw();
+			}
+			function generateAndDraw(){
+				arr = genIntRandArray( gen_max , max_height );
+				draw();
+			}
+		</script>
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>

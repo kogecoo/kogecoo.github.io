@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Depth First Maze Generator, and Breadth  First Maze Solver</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			var wall_color = "black";
+			var aisle_color = "white";
+			var start_color = "red";
+			var goal_color = "lime";
+			var error_color = "magenta";
+			var path_color = "gray";
+			var maze_width = 21;
+			var maze_height = 21;
+			var cell_size = 5;
+			var maze_matrix;
+			var goal_found = false;
+			var start_x;
+			var start_y;
+			var goal_x;
+			var goal_y;
+			var generated = false;
+			var solved = false;
+			var INT_MAX = 2147483647;
+			
+			// Durstenfeld, Richard (July 1964). "Algorithm 235: Random permutation". Communications of the ACM 7 (7): 420. doi:10.1145/364520.364540
+			function fisherYatesModernShuffle( arr ){
+				for( var i = arr.length - 1; i > 0; --i ){
+					var j = Math.floor( Math.random() * ( i + 1 ) );
+					var temp = arr[i];
+					arr[i] = arr[j];
+					arr[j] = temp;
+				}
+			}
+			
+			function setStartGoal(){
+				if( maze_width < 3 || maze_height < 3 ){ throw "Not enough size of matrix."; }
+				start_x = Math.floor( ( Math.random() * ( maze_width - 2 ) ) / 2 ) * 2+ 1;
+				start_y = Math.floor( ( Math.random() * ( maze_height - 2 ) ) / 2 ) * 2 + 1 ;
+				do{ goal_x = Math.floor( ( Math.random() * ( maze_width - 2 ) ) / 2 ) * 2 + 1 }while( goal_x == start_x );
+				do{ goal_y = Math.floor( ( Math.random() * ( maze_height - 2 ) ) / 2 ) * 2 + 1}while( goal_y == start_y );
+				maze_matrix[start_y][start_x] = 'S';
+				maze_matrix[goal_y][goal_x] = 'G';
+				
+			}
+			function getConfigurations(){
+				maze_width = $("maze-width").val();
+				maze_height = $("maze-height").val();
+			}
+			function createMazeViewBase(){
+				goal_found = false;
+				$("#mazetable" ).remove();
+				
+				var w = cell_size * maze_width;
+				var h = cell_size * maze_height;
+				var table = $("<table id='mazetable'>").css( { borderCollapse: "collapse", width: w + "px", height: h + "px", float: "left" } );
+				for( var i = 0; i < maze_height; ++i ){
+					var tr = $("<tr>");
+					for( var j = 0; j < maze_width; ++j ){					
+						var td = $("<td class='mazecell' id='mazecell_" + j + "_" + i + "'>" );
+						td.css( { width: cell_size + "px", height: cell_size + "px" } );
+						td.css( { backgroundColor: wall_color } );
+						tr.append( td );
+					}
+					table.append( tr );
+				}
+				$("#maze").append( table );
+			}
+			function repaintMazeView(){
+				for( var i = 0; i < maze_height; ++i ){
+					for( var j = 0; j < maze_width; ++j ){
+						var cell = $("#mazecell_" + j + "_" + i );
+						switch( maze_matrix[i][j] ){
+							case '#':
+								cell.css( { backgroundColor: wall_color } );
+								break;
+							case '.':
+								cell.css( { backgroundColor: aisle_color } );
+								break;
+							case 'S':
+								cell.css( { backgroundColor: start_color } );
+								break;
+							case 'G':
+								cell.css( { backgroundColor: goal_color } );
+								break;
+							case '*':
+								cell.css( { backgroundColor: path_color } );
+								break;
+							default:
+								cell.css( { backgroundColor: erro_color } );
+								break;
+						}
+					}
+				}
+			}
+			function createMazeMatrix( init ){
+				maze = Array( maze_height );
+				for( var i = 0; i < maze_height; ++i ){
+					var row = Array( maze_width );
+					for( var j = 0; j < maze_width; ++j ){
+						row[j] = init;
+					}
+					maze[i] = row;
+				}
+				return maze;
+			}
+			function outputMazeText(){
+				$("#area").remove();
+				$("#ta").append( $("<textarea id='area'>").css( { width: maze_width + 2 + "em", height: maze_height + 2 + "em" } ).val( function(){
+					var a = "";
+					for( var i = 0; i < maze_matrix.length; ++i ){
+						for( var j = 0; j < maze_matrix[0].length; ++j ){
+							a += maze_matrix[i][j];
+						}
+						a+="\n";
+					}
+					return a;
+				} ) );
+			}
+			
+			var jobs = [];
+			
+			function genMaze(){
+				solved = false;
+				generated = false;
+				if( !getWidthHeight() ){ return; }
+				maze_matrix = createMazeMatrix( '#' );
+				setStartGoal();
+				createMazeViewBase();
+				var next = dfsMazeGenerator( maze_matrix, start_x, start_y, function () {
+					generated = true;
+				} );
+				function run() {
+					if (next) {
+						next = next();
+						repaintMazeView();
+						outputMazeText();
+						setTimeout(run, 0);
+					}
+				}
+				run();
+			}
+			
+			function dfsMazeGenerator( mat, px, py, cont ){
+				var dx = [-1,0,1,0], dy = [0,-1,0,1], indexes = [];
+				for( var i = 0; i < dx.length; ++i ){ indexes.push( i ); }
+				fisherYatesModernShuffle( indexes );
+				var w = mat[0].length, h = mat.length;
+				function makeStep(i) {
+					return (i >= dx.length) ? cont : function () {
+						var idx = indexes[i];
+						var x = px + dx[idx] * 2, y = py + dy[idx] * 2;
+						var nx = px + dx[idx], ny = py + dy[idx];
+						if( x >= 1 && x < w - 1 && y >= 1 && y < h - 1){
+							if( mat[y][x] == '#' ){
+								mat[ny][nx] = mat[y][x] = '.';
+								return dfsMazeGenerator( mat, x, y, makeStep(i + 1) );
+							} else if( !goal_found && mat[y][x] == 'G' ){
+								goal_found = true;
+								mat[ny][nx] = '.';
+							}
+						}
+						return makeStep(i + 1);
+					};
+				}
+				return makeStep(0);
+			}
+			function getWidthHeight(){
+				var w = $("#maze-width").val();
+				var h = $("#maze-height").val();
+				if( h === "" || h === undefined || h === null || w === "" || w === undefined || w === null ){
+					alert( "Invalid value" );
+					return false;
+				} else {
+					if( w >= 3 && w <= 10 && h >= 3 && w <= 10 ){
+						maze_width = parseInt( w ) * 2 + 1;
+						maze_height = parseInt( h ) * 2 + 1;
+						return true;
+					} else {
+						alert( "Value must be 3 <= w < 10" );
+						return false;
+					}
+				}
+			}
+			function solveMaze(){
+				if( solved ){ alert( "Already solved" ); return; }
+				if( !generated ){ alert( "Not generated a maze" ); return; }
+				_solveMaze();
+				solved = true;
+				repaintMazeView();
+				outputMazeText();
+			}
+			function _solveMaze(){
+				var arr = createMazeMatrix( INT_MAX );
+				var dx = [-1,0,1,0], dy = [0,-1,0,1];
+				var q = [];
+				var counter = 0;
+				var found = false;
+				
+				arr[start_y][start_x] = 0;
+				q.push( [start_x, start_y] );
+				
+				while( q.length > 0 ){
+					var entry = q.shift();
+					var x = entry[0], y = entry[1];
+					for( var i = 0; i < dx.length; ++i ){
+						if( arr[ y + dy[i] ][ x + dx[i] ] == INT_MAX ){
+							if( maze_matrix[ y + dy[i] ][ x + dx[i] ] == '.' ){
+								arr[ y + dy[i] ][ x + dx[i] ] = arr[y][x] + 1;
+								q.push( [ x + dx[i], y + dy[i] ] );
+							} else if( maze_matrix[ y + dy[i] ][ x + dx[i] ] == 'G' ){
+								found = true;
+								arr[ y + dy[i] ][ x + dx[i] ] = arr[y][x] + 1;
+								q.push( [ x + dx[i], y + dy[i] ] );
+								
+							} else {
+								continue;
+							}
+						}
+						if( found ){ break; }
+					}
+					if( found ){ break; }
+				}
+				if( found ){ var g = q.pop(); backtrack(g[0],g[1],arr); } else { throw "Cannot find a solution"; }
+			}
+			function _backtrack(x,y,stepmatrix){
+				var dx = [-1,0,1,0], dy = [0,-1,0,1];
+				var currentsteps = stepmatrix[y][x];
+				if( maze_matrix[y][x] == 'S' ){
+					return;
+				} else if( maze_matrix[y][x] == '#' ){
+					return; 
+				} else if( maze_matrix[y][x] == '.' ){
+					maze_matrix[y][x] = '*';
+				}
+				
+				for( var i = 0; i < dx.length; ++i ){
+					if( currentsteps - stepmatrix[dy[i]+y][dx[i]+x] == 1 ){	
+						_backtrack( dx[i]+x, dy[i]+y, stepmatrix );
+					}
+				}
+			}
+			function backtrack( x, y, stepmatrix ){
+				if( maze_matrix[y][x] != 'G' ){ throw "Error in backtrack()"; }
+				_backtrack( x, y, stepmatrix );
+			}
+		</script>
+		
+	</head>
+	<body>
+		<h1>Depth First Maze Generator, and Breadth  First Maze Solver</h1>
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div><br><br>
+		<div class="padding"></div>
+		 The value of width/height must be from 3 to 10.<br>
+		<table>
+			<tbody><tr>
+				<td>
+					width
+				</td>
+				<td>
+					<input type="text" id="maze-width">
+				</td>
+			</tr>
+			<tr>
+				
+				<td>
+					height
+				</td>
+				<td>
+					<input type="text" id="maze-height">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button onclick="genMaze();">generate</button>
+				</td>
+				<td>
+					<button onclick="solveMaze();">solve</button>
+				</td>
+			</tr>
+		</tbody></table>
+		<div id="maze" style="width:200px; height:200px;"></div>
+		<div id="ta"></div>
+		
+		<h2>What's this?</h2>
+			<p>
+				  Maze generator/solver by javascript.<br>
+				 A maze is constructed by a simple recursive backtracker algorithm.<br>
+				 And solver solves a maze with breadth first search algorithm.<br>
+			</p>
+		<h2>Contribute</h2>
+			<p>
+				Thanks to hirofummy. He contributes a part of animation of maze construction.
+			</p>
+		<h2>Contact</h2>
+		<p>
+			kogecoo'AT'gmail_com
+		</p>
+		
+		<h2>History</h2>
+			<p>
+				<ul>
+					<li>2011.04.25 ver. 2 Add maze construction animation. Add bfs maze solver.
+					<li>2011.04.24 ver. 1 Initial release.
+				</ul>
+			</p>
+		
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+</body></html>

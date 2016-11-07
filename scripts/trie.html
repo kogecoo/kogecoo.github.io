@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Simple Trie by javascript</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.9.0/build/treeview/assets/skins/sam/treeview.css">
+		<script src="http://yui.yahooapis.com/2.9.0/build/yahoo-dom-event/yahoo-dom-event.js" ></script>
+		<script src="http://yui.yahooapis.com/2.9.0/build/treeview/treeview-min.js" ></script>
+		<script type="text/javascript" src="triedemo.js"></script>
+		<script>
+			var trie = new Trie();
+			
+			function insert(){
+				trie.insert( document.getElementById( "txt" ).value );
+				repaint();
+			}
+			function remove(){
+				trie.remove( document.getElementById( "txt" ).value );
+				repaint();
+			}
+			function find(){
+				var t = document.getElementById( "txt").value;
+				var ret = trie.find( t );
+				if( ret !== null ){
+					alert( '"' + ret + '"' + " is in TRIE" );
+				} else {
+					alert( "Cannot find " + '"' + t + '"' );
+				}
+			}
+			function repaint(){
+				var tree = new YAHOO.widget.TreeView("tree");
+				var root = tree.getRoot();
+				trie.draw( YAHOO.widget.TextNode, root );
+				tree.render();
+			}
+			function init(){
+				trie.insert( "bar" );
+				trie.insert( "baz" );
+				repaint();
+			}
+		</script>
+		<style type="text/css">
+			.padding{
+				height : 1em;
+			}
+			h1{
+				background-color : #dddddd;
+				color : #777777;
+			}
+			h2{
+				background-color : #dddddd;
+				color : #777777;
+			}
+		</style>
+
+	</head>
+	<body onload="init();">
+		<h1> Trie visualization demo by JavaScript + YUI</h1>
+		
+		<div class="padding"></div>
+		<input type="text" id="txt" value="foo"></input><br>
+		<button onclick="insert();">insert</button>
+		<button onclick="remove();">remove</button>
+		<button onclick="find();">find</button>
+		<div class="padding"></div>
+		<div id="tree" class="yui-skin-sam"></div>
+		<div class="padding"></div>
+		
+		
+		
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div>
+		<h2>What's this?</h2>
+			<p>
+				  Visualization demo for help your understanding of Trie data structure.<br>
+			</p>
+		<h2>Description</h2>
+		<p>
+			  The Trie, one of a data structure for string strage which enables us to quick access to an entry. <br>
+			 We can understand the trie as only key-value stores, key is a string and value is any.<br>
+			 In above case, the string key is understood as the chain of the sub key which determined by the letter and its place in the string.<br>
+			 So, it can be naturally understood that Tries can save the space in case that trie has many similar strings.<br>
+		</p>
+		
+		<h2>Module</h2>
+			<p>
+				  Trie module for JavaScript is available.<br>
+				 If you are interested in the Trie, download and use it.<br>
+			</p>
+				Download from here => <a href="trie.js">trie.js</a>
+		<h2>Contact</h2>
+			<p>
+				kogecoo'AT'gmail_com
+			</p>
+		
+		<h2>History</h2>
+			<p>
+				2011.04.17 ver. 1 Initial release.
+			</p>
+
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Visualized Markov Chain Monte Carlo sampler based on Gibbs sampling</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			new function(){
+				Util = {
+					gaussrandA : function(rang,s,m){return Math.pow(-2*Math.log(rang()),0.5)*Math.cos(2*Math.PI*rang())*s+m;},
+					gaussrandB : function(rang,s,m){return Math.pow(-2*Math.log(rang()),0.5)*Math.sin(2*Math.PI*rang())*s+m;},
+					numValidation : function(i){ 
+						if( !(i === undefined || i === null || i === "" ) ){
+							try{
+								var j = parseInt( i );
+								return true;
+							} catch( e ){
+								return false;
+							}
+						} else {
+							return false;
+						}
+					}
+				}
+				// for normal distribution, 2 independent variables.
+				Gibbs = {
+					samplevar_x: 0,
+					samplevar_y: 0,
+					p_x: 0,
+					p_y: 0,
+					trialx: function(){
+						this.samplevar_x = Util.gaussrandA( Math.random, 1, 0 );
+					},
+					trialy: function(){
+						this.samplevar_y = Util.gaussrandA( Math.random, 1, 0 );
+					},
+					init: function( initialx, initialy ){
+						this.samplevar_x = initialx;
+						this.samplevar_y = initialy;
+					}
+				}
+			}
+			var nsampling = 0;
+			var ctx = null;
+			var inc_color = true;
+			var r = 0;
+			var g = 0;
+			var b = 0;
+			function initSampler(){
+				try{
+					var initialx = 0;
+					var initialy = 0;
+				} catch( e ){
+					alert( e );
+					return;
+				}
+				Gibbs.init( initialx, initialy);
+			}
+			function getContext(){
+				var canvas = document.getElementById("samples");
+				if( !canvas || !canvas.getContext ){ alert( "your browser is not support canvas. sorry.");return null; }
+				return canvas.getContext('2d');
+			}
+			function line( x, y, prevx, prevy, c ){
+				ctx.strokeStyle = c;
+				var expand_x = x * 50 + 200;
+				var expand_y = y * 50 + 200;
+				var expand_prevx = prevx * 50 + 200;
+				var expand_prevy = prevy * 50 + 200;
+				
+				ctx.beginPath();
+				ctx.moveTo( expand_prevx, expand_prevy );
+				ctx.lineTo( expand_x, expand_y );
+				ctx.closePath();
+				ctx.stroke()
+			}
+			function clearSamples(){
+				ctx = getContext();
+				ctx.clearRect(0,0,400,400);
+			}
+			function point( x, y, c){
+				ctx.fillStyle = c;
+				var expand_x = x * 50 + 200;
+				var expand_y = y * 50 + 200;
+				ctx.beginPath();
+				ctx.arc( expand_x, expand_y, 1, 0, Math.PI*2, false );
+				ctx.fill();
+			}
+			function init(){
+				initSampler();
+			}
+			function run(){
+				nsampling = getSamplingtime();
+				var prevx = Gibbs.samplevar_x;
+				var prevy = Gibbs.samplevar_y;
+				while(nsampling--){
+					Gibbs.trialx();
+					line( Gibbs.samplevar_x, Gibbs.samplevar_y, prevx, prevy, 'rgba(255,0,0,0.1)' );
+					point(Gibbs.samplevar_x, Gibbs.samplevar_y, 'rgba(255,0,0,1)' );
+					prevx = Gibbs.samplevar_x;
+					prevy = Gibbs.samplevar_y;
+					
+					Gibbs.trialy();
+					line( Gibbs.samplevar_x, Gibbs.samplevar_y, prevx, prevy, 'rgba(255,0,0,0.1)' );
+					point(Gibbs.samplevar_x, Gibbs.samplevar_y, 'rgba(255,0,0,1)' );
+					prevx = Gibbs.samplevar_x;
+					prevy = Gibbs.samplevar_y;
+				}
+			}
+			function getSamplingtime(){
+				var i = $("#stime").val();
+				if( Util.numValidation( i ) ){ return parseInt( i ); } else { throw "Sampling time value error"; }
+			}
+		</script>
+	</head>
+	<body onload="init();clearSamples();run();">
+		<h1>Visualized Markov Chain Monte Carlo sampler based on Gibbs sampling</h1>
+		
+		<table>
+			<tr>
+				<td>Sampling steps(natural)</td><td><input type="text" id="stime" value="100"></input></td>
+			</tr>
+			<tr>
+				<td style="text-align:right;"><button onclick="init();clearSamples();run();">generate</button></td><td><button onclick="run();">more</button></td>
+			</tr>
+		</table>
+		
+		<canvas id="samples" width="400", height="400"></canvas><br><br><br>
+		
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div>
+		<h2>What's this?</h2>
+			 Visualized Markov Chain Monte Carlo sampler based on Gibbs sampling.<br>
+			This sampler is for 2 variable Gaussian.<br>
+			For simplicity, 2 variables are independent on this demo.
+			Gibbs sampler is extremely simple because samples just draw from standard Gaussian on every sampling stemps.<br><br>
+			 Red dot on canvas is accepted sample, and blue one is rejected sample.<br><br>
+			This script uses jQuery, HTML5-canvas, so you should use a modern browser.<br><br>
+			Have fun!<br><br><br>
+			( And enjoy another sampler, <a href="metropolisnorm.html">Metropolis Hastings sampler.</a>)
+		<h2>Contact</h2>
+				kogecoo'AT'gmail_com
+		<h2>History</h2>
+			<p>
+				2011.05.07 ver. 1 Initial release.
+			</p>
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>

@@ -1,0 +1,106 @@
+#footer{
+	position: fixed;
+	bottom: 0px;
+	right: 0px;
+	width: 100%;
+	text-align: right;
+	color: gray;
+	border-top: solid 1px gray;
+	font-size: small;
+	background-color: white;
+}
+.padding{
+	height : 1em;
+}
+body{
+	font-size: small;
+}
+body a:link{
+	color: dimgray;
+	font-size: small;
+}
+body a:visited{
+	color: gray;
+	font-size: small;
+}
+body a:hover{
+	color: darkseagreen;
+	font-size: small;
+}
+body a:active{
+	color: forestgreen;
+	font-size: small;
+}
+h1{
+	background-color : #dddddd;
+	color : #777777;
+}
+h2{
+	background-color : #dddddd;
+	color : #777777;
+}
+
+span.smallblack{
+	color: black;
+	font-size: small;
+}
+
+span.smallgray{
+	color: gray;
+	font-size: small;
+}
+
+table.tableart{
+	border-collapse: collapse;
+	font-size: small;
+	white-space: nowrap;
+}
+
+td.tableart-padding{
+	width: 1em;
+	height: 1em;
+}
+td.tableart-white{
+	background-color: white;
+	color: white;
+	width: 1em;
+	height: 1em;
+	white-space: nowrap;
+}
+td.tableart-gray{
+	background-color: gray;
+	color: gray;
+	width: 1em;
+	height: 1em;
+	white-space: nowrap;
+}
+td.tableart-lightgray{
+	background-color: lightgray;
+	color: lightgray;
+	width: 1em;
+	height: 1em;
+	white-space: nowrap;
+}
+table.simplegray{
+	margin-left : auto;
+	margin-right : auto;
+	color: black;
+	font-size: small;
+	border: solid 2px gray;
+	border-collapse: collapse;
+}
+table.simplegray thead{
+	background-color: lightgray;
+}
+table.simplegray td{
+	padding : 10px 10px 10px 10px;
+	border: solid 2px gray;
+}
+
+div.backlink{
+	margin-left: auto;
+	margin-right: auto;
+	display:inline-block;
+	border-left: solid 10px lightgray;
+	border-bottom: solid 10px lightgray;
+}

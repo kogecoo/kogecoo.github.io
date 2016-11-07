@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Visualized Markov Chain Monte Carlo sampler based on Metropolis method</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link href="../css/common.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			new function(){
+				Util = {
+					numValidation : function(i){ 
+						if( !(i === undefined || i === null || i === "" ) ){
+							try{
+								var j = parseInt( i );
+								return true;
+							} catch( e ){
+								return false;
+							}
+						} else {
+							return false;
+						}
+					}
+				}
+				// for normal distribution, 2 independent variables.
+				Metropolis = {
+					delta: 0,
+					samplevar_x: 0,
+					samplevar_y: 0,
+					p_x: 0,
+					p_y: 0,
+					unif_rand: function( rangehalf, randGenerator ){
+						return ( randGenerator() - 0.5 ) * 2 * rangehalf;
+					},
+					getGaussianNumerator: function( x, y ){
+						return Math.exp( -1 * ( x * x + y * y ) / 2 );
+					},
+					accept: function( current, proposal, randGenerator ){
+						return ( proposal / current ) > randGenerator();
+					},
+					trial: function(){
+						var propvar_x = this.samplevar_x + this.unif_rand( this.delta, Math.random );
+						var propvar_y = this.samplevar_y + this.unif_rand( this.delta, Math.random );
+						var prop = this.getGaussianNumerator( propvar_x, propvar_y );
+						var sample = this.getGaussianNumerator( this.samplevar_x, this.samplevar_y );
+						if( this.accept( sample, prop, Math.random ) ){
+							this.samplevar_x = propvar_x;
+							this.samplevar_y = propvar_y;
+							return true;
+						} else {
+							this.p_x = propvar_x;
+							this.p_y = propvar_y;
+							return false;
+						}
+					},
+					init: function( initialx, initialy, delta ){
+						this.samplevar_x = initialx;
+						this.samplevar_y = initialy;
+						this.delta = delta;
+					}
+				}
+			}
+			var nsampling = 0;
+			var ctx = null;
+			var inc_color = true;
+			var r = 0;
+			var g = 0;
+			var b = 0;
+			function initSampler(){
+				try{
+					var initialx = 0;
+					var initialy = 0;
+					var delta = getDelta();
+				} catch( e ){
+					alert( e );
+					return;
+				}
+				Metropolis.init( initialx, initialy, delta );
+			}
+			function getContext(){
+				var canvas = document.getElementById("samples");
+				if( !canvas || !canvas.getContext ){ alert( "your browser is not support canvas. sorry.");return null; }
+				return canvas.getContext('2d');
+			}
+			function line( x, y, prevx, prevy, c ){
+				ctx.strokeStyle = c;
+				var expand_x = x * 50 + 200;
+				var expand_y = y * 50 + 200;
+				var expand_prevx = prevx * 50 + 200;
+				var expand_prevy = prevy * 50 + 200;
+				
+				ctx.beginPath();
+				ctx.moveTo( expand_prevx, expand_prevy );
+				ctx.lineTo( expand_x, expand_y );
+				ctx.closePath();
+				ctx.stroke()
+			}
+			function clearSamples(){
+				ctx = getContext();
+				ctx.clearRect(0,0,400,400);
+			}
+			function point( x, y, c){
+				ctx.fillStyle = c;
+				var expand_x = x * 50 + 200;
+				var expand_y = y * 50 + 200;
+				ctx.beginPath();
+				ctx.arc( expand_x, expand_y, 1, 0, Math.PI*2, false );
+				ctx.fill();
+			}
+			function init(){
+				initSampler();
+			}
+			function gradationColor(){
+				if( r === 255 ){
+					inc_color = false;
+				} else if( r === 0 ){
+					inc_color = true;
+				}
+				
+				if( inc_color ){
+					++r;
+				} else {
+					--r;
+				}
+				return r;
+			}
+			function run(){
+				nsampling = getSamplingtime();
+				var prevx = Metropolis.samplevar_x;
+				var prevy = Metropolis.samplevar_y;
+				while(nsampling--){
+					if( Metropolis.trial() ){
+						var red = gradationColor()
+						line( Metropolis.samplevar_x, Metropolis.samplevar_y, prevx, prevy, 'rgba(255,0,0,0.1)' );
+						point(Metropolis.samplevar_x, Metropolis.samplevar_y, 'rgba(255,0,0,1)' );
+						prevx = Metropolis.samplevar_x;
+						prevy = Metropolis.samplevar_y;
+					} else {
+						line(  Metropolis.p_x, Metropolis.p_y, Metropolis.samplevar_x, Metropolis.samplevar_y, 'rgba(0,0,255,0.1)' );
+						point(Metropolis.p_x, Metropolis.p_y, 'rgba(0,0,255,0.4)' );
+					}
+				}
+			}
+			function getDelta(){
+				var i = $("#delta").val();
+				if( Util.numValidation( i ) ){ return parseFloat( i ); } else { throw "Delta value error"; }
+			}
+			function getSamplingtime(){
+				var i = $("#stime").val();
+				if( Util.numValidation( i ) ){ return parseInt( i ); } else { throw "Sampling time value error"; }
+			}
+		</script>
+	</head>
+	<body onload="init();clearSamples();run();">
+		<h1>Visualized Markov Chain Monte Carlo sampler based on Metropolis method</h1>
+		
+		<table>
+			<tr>
+				<td>Step size (real)</td><td><input type="text" id="delta" value="0.5"></input></td>
+			</tr>
+			<tr>
+				<td>Sampling steps(natural)</td><td><input type="text" id="stime" value="100"></input></td>
+			</tr>
+			<tr>
+				<td style="text-align:right;"><button onclick="init();clearSamples();run();">generate</button></td><td><button onclick="run();">more</button></td>
+			</tr>
+		</table>
+		
+		<canvas id="samples" width="400", height="400"></canvas><br><br><br>
+		
+		<div class="backlink"><a href="../scripts.html">Back to prev page</a></div>
+		<h2>What's this?</h2>
+			 Visualized Markov Chain Monte Carlo sampler based on Metropolis method.<br>
+			This sampler is for 2 variable Gaussian ( normal distribution ).<br>
+			For simplicity, 2 variables are independent on this demo<br><br>
+			
+			 Red dot on canvas is accepted sample, and blue one is rejected sample.<br><br>
+			This script uses jQuery, HTML5-canvas, so you should use a modern browser.<br><br>
+			Have fun!<br><br><br>
+			 ( And enjoy another sampler, <a href="gibbsnorm.html">Gibbs sampler.</a>)
+		<h2>Contact</h2>
+				kogecoo'AT'gmail_com
+		<h2>History</h2>
+			<p>
+				2011.05.07 ver. 1 Initial release.
+			</p>
+		<!-- footer --->
+		<div class="padding"></div>
+		<div id="footer">Copyright (C) 2011 kogecoo All rights reserved.</div>
+		<!--google analytics-->
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-8029992-1");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		<!--google analytics-->
+	</body>
+</html>
